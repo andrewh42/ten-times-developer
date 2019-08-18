@@ -17,6 +17,10 @@ class ParserSpec extends Specification {
       parse("Sarah is a better developer than Evan") must beEqualTo(Right(Better(Person("Sarah"), Person("Evan"))))
     }
 
+    "parse directly above or below statements" in {
+      parse("Matt is directly below or above John as a developer") must beEqualTo(Right(DirectlyAboveOrBelow(Person("Matt"), Person("John"))))
+    }
+
     "parse negative statements" in {
       parse("Jessie is not the best developer") must beEqualTo(Right(Not(Best(Person("Jessie")))))
       parse("Jessie is not the worst developer") must beEqualTo(Right(Not(Worst(Person("Jessie")))))
