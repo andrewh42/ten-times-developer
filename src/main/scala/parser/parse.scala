@@ -33,25 +33,32 @@ private object Parts {
 object Parser {
   import Parts._
 
-  def better[_: P]: P[Better] = P(subjectAndVerb ~ "a".? ~ "better" ~ developer ~ "than".? ~ person).map {
+  def betterStatement[_: P]: P[Better] = P(subjectAndVerb ~ "a".? ~ "better" ~ developer ~ "than".? ~ person).map {
     case (better, worse) => Better(better, worse)
   }
 
-  def bestStatement[_: P]: P[Best] = P(subjectAndVerb ~ the ~ "best" ~ developer).map(Best)
+  def bestStatement[_: P]: P[Best] = P(subjectAndVerb ~ best).map(Best)
 
-  def directlyAboveOrBelow[_: P]: P[DirectlyAboveOrBelow] = P(subjectAndVerb ~ "directly" ~ aboveOrBelow ~ person ~ "as" ~ "a" ~ developer).map {
+  def directlyAboveOrBelowStatement[_: P]: P[DirectlyAboveOrBelow] = P(subjectAndVerb ~ "directly" ~ aboveOrBelow ~ person ~ "as".? ~ "a".? ~ developer).map {
     case (subject, objekt) => DirectlyAboveOrBelow(subject, objekt)
   }
 
   def worstStatement[_: P]: P[Worst] = P(subjectAndVerb ~ worst).map(Worst)
 
-  def or[_: P]: P[Or] = P(subjectAndVerb ~ the ~ orPart ~ "or" ~ orPart).map {
-    case (subject, "worst", "best") => Or(Worst(subject), Best(subject))
-    case (subject, "best", "worst") => Or(Best(subject), Worst(subject))
-    case (_, _, _) => ???
-  }
+  def orStatement[_: P]: P[Or] = P(subjectAndVerb ~ the ~ orPart ~ "or" ~ orPart)
+    .filter { case (subject, bw1, bw2) => bw1 != bw2 }
+    .map {
+      case (subject, _, "best") => Or(Worst(subject), Best(subject))
+      case (subject, _, _) => Or(Best(subject), Worst(subject))
+    }
 
-  def positiveStatement[_: P]: P[Statement] = P(or | bestStatement | better | directlyAboveOrBelow | worstStatement)
+  def positiveStatement[_: P]: P[Statement] = P(
+    orStatement |
+    bestStatement |
+    betterStatement |
+    directlyAboveOrBelowStatement |
+    worstStatement
+  )
 
   def negativeStatement[_: P]: P[Not] = P(&(person ~ "is" ~ "not") ~ positiveStatement).map(Not)
 
