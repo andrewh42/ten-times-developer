@@ -10,17 +10,24 @@ case class Better(better: Person, worse: Person) extends Statement
 case class DirectlyAboveOrBelow(subject: Person, objekt: Person) extends Statement
 case class Worst(person: Person) extends Statement
 case class Not(statement: Statement) extends Statement
+case class Or(statement1: Statement, statement2: Statement) extends Statement
 
 private object Parts {
   def aboveOrBelow[_: P] = P(("above" ~ "or" ~ "below") | ("below" ~ "or" ~ "above"))
 
+  def best[_: P] = P(the ~ "best" ~ developer)
+
   def developer[_: P] = P("developer".?)
+
+  def orPart[_: P] = P(best.!.map(Unit => "best") | worst.!.map(Unit => "worst"))
 
   def person[_: P]: P[Person] = P(CharIn("A-Z") ~ CharsWhile(_ != ' ')).!.map(Person)
 
   def subjectAndVerb[_: P] = P(person ~ "is" ~ "not".?)
 
   def the[_: P] = P("the".?)
+
+  def worst[_: P] = P(the ~ "worst" ~ developer)
 }
 
 object Parser {
@@ -30,15 +37,21 @@ object Parser {
     case (better, worse) => Better(better, worse)
   }
 
-  def best[_: P]: P[Best] = P(subjectAndVerb ~ the ~ "best" ~ developer).map(Best)
+  def bestStatement[_: P]: P[Best] = P(subjectAndVerb ~ the ~ "best" ~ developer).map(Best)
 
   def directlyAboveOrBelow[_: P]: P[DirectlyAboveOrBelow] = P(subjectAndVerb ~ "directly" ~ aboveOrBelow ~ person ~ "as" ~ "a" ~ developer).map {
     case (subject, objekt) => DirectlyAboveOrBelow(subject, objekt)
   }
 
-  def worst[_: P]: P[Worst] = P(subjectAndVerb ~ the ~ "worst" ~ developer).map(Worst)
+  def worstStatement[_: P]: P[Worst] = P(subjectAndVerb ~ worst).map(Worst)
 
-  def positiveStatement[_: P]: P[Statement] = P(best | better | directlyAboveOrBelow | worst)
+  def or[_: P]: P[Or] = P(subjectAndVerb ~ the ~ orPart ~ "or" ~ orPart).map {
+    case (subject, "worst", "best") => Or(Worst(subject), Best(subject))
+    case (subject, "best", "worst") => Or(Best(subject), Worst(subject))
+    case (_, _, _) => ???
+  }
+
+  def positiveStatement[_: P]: P[Statement] = P(or | bestStatement | better | directlyAboveOrBelow | worstStatement)
 
   def negativeStatement[_: P]: P[Not] = P(&(person ~ "is" ~ "not") ~ positiveStatement).map(Not)
 
