@@ -6,6 +6,7 @@ case class Person(name: String)
 
 sealed trait Statement
 case class Best(person: Person) extends Statement
+case class Worst(person: Person) extends Statement
 case class Not(statement: Statement) extends Statement
 
 object Parser {
@@ -13,13 +14,15 @@ object Parser {
 
   def the[_: P] = P("the".?)
 
-  def not[_: P] = P("not")
-
   def person[_: P]: P[Person] = P(CharIn("A-Z") ~ CharsWhile(_ != ' ')).!.map(Person)
 
-  def best[_: P]: P[Best] = P(person ~ "is" ~ not.? ~ the ~ "best" ~ developer).map(Best)
+  def subjectAndVerb[_: P] = P(person ~ "is" ~ "not".? ~ the)
 
-  def positiveStatement[_: P]: P[Statement] = P(best)
+  def best[_: P]: P[Best] = P(subjectAndVerb~ "best" ~ developer).map(Best)
+
+  def worst[_: P]: P[Worst] = P(subjectAndVerb~ "worst" ~ developer).map(Worst)
+
+  def positiveStatement[_: P]: P[Statement] = P(best | worst)
 
   def negativeStatement[_: P]: P[Not] = P(&(person ~ "is" ~ "not") ~ positiveStatement).map(Not)
 
