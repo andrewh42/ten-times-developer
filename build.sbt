@@ -8,3 +8,6 @@ libraryDependencies ++= Seq(
 unmanagedJars in Compile += {
     baseDirectory.value / "unmanaged" / s"scalaz3_${scalaBinaryVersion.value}-4.7.1.jar"
 }
+
+// z3solver blows up when mkSolver is called multiple times within the same process :(
+fork in Test := true
