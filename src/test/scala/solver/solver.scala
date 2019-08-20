@@ -9,5 +9,9 @@ class SolverSpec extends Specification {
     "solve a single-person problem" in {
       new Solver(Seq(Best(Person("Fred")))).solve() must beEqualTo(Seq(Person("Fred")))
     }
+
+    "solve a two-person problem" in {
+      new Solver(Seq(Better(Person("Sally"), Person("Fred")))).solve() must beEqualTo(Seq(Person("Sally"), Person("Fred")))
+    }
   }
 }
