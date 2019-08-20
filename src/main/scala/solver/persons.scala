@@ -4,9 +4,13 @@ import parser._
 
 object PersonsBuilder {
   def build(statements: Seq[Statement]): Set[Person] = statements
-    .map(_ match {
-      case Best(person) => person
-      case _ => ???
+    .flatMap(_ match {
+      case Best(person) => Seq(person)
+      case Worst(person) => Seq(person)
+      case Better(person1, person2) => Seq(person1, person2)
+      case DirectlyAboveOrBelow(person1, person2) => Seq(person1, person2)
+      case Or(statement1, statement2) => build(Seq(statement1, statement2))
+      case Not(statement) => build(Seq(statement))
     })
     .toSet
 }
