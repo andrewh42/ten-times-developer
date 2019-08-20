@@ -12,12 +12,12 @@ case class Worst(person: Person) extends Statement
 case class Not(statement: Statement) extends Statement
 case class Or(statement1: Statement, statement2: Statement) extends Statement
 
-private object Parts {
+private object StatementsAndParts {
   def aboveOrBelow[_: P] = P(("above" ~ "or" ~ "below") | ("below" ~ "or" ~ "above"))
 
   def best[_: P] = P(the ~ "best" ~ developer)
 
-  def developer[_: P] = P("developer".?)
+  def developer[_: P] = P("as".? ~ "a".? ~ "developer".?)
 
   def orPart[_: P] = P(best.!.map(Unit => "best") | worst.!.map(Unit => "worst"))
 
@@ -28,10 +28,6 @@ private object Parts {
   def the[_: P] = P("the".?)
 
   def worst[_: P] = P(the ~ "worst" ~ developer)
-}
-
-object Parser {
-  import Parts._
 
   def betterStatement[_: P]: P[Better] = P(subjectAndVerb ~ "a".? ~ "better" ~ developer ~ "than".? ~ person).map {
     case (better, worse) => Better(better, worse)
@@ -39,13 +35,13 @@ object Parser {
 
   def bestStatement[_: P]: P[Best] = P(subjectAndVerb ~ best).map(Best)
 
-  def directlyAboveOrBelowStatement[_: P]: P[DirectlyAboveOrBelow] = P(subjectAndVerb ~ "directly" ~ aboveOrBelow ~ person ~ "as".? ~ "a".? ~ developer).map {
+  def directlyAboveOrBelowStatement[_: P]: P[DirectlyAboveOrBelow] = P(subjectAndVerb ~ "directly" ~ aboveOrBelow ~ person ~ developer).map {
     case (subject, objekt) => DirectlyAboveOrBelow(subject, objekt)
   }
 
   def worstStatement[_: P]: P[Worst] = P(subjectAndVerb ~ worst).map(Worst)
 
-  def orStatement[_: P]: P[Or] = P(subjectAndVerb ~ the ~ orPart ~ "or" ~ orPart)
+  def relativeComparisonStatement[_: P]: P[Or] = P(subjectAndVerb ~ the ~ orPart ~ "or" ~ orPart)
     .filter { case (subject, bw1, bw2) => bw1 != bw2 }
     .map {
       case (subject, _, "best") => Or(Worst(subject), Best(subject))
@@ -53,7 +49,7 @@ object Parser {
     }
 
   def positiveStatement[_: P]: P[Statement] = P(
-    orStatement |
+    relativeComparisonStatement |
     bestStatement |
     betterStatement |
     directlyAboveOrBelowStatement |
@@ -63,6 +59,10 @@ object Parser {
   def negativeStatement[_: P]: P[Not] = P(&(person ~ "is" ~ "not") ~ positiveStatement).map(Not)
 
   def statement[_: P]: P[Statement] = P(negativeStatement | positiveStatement)
+}
+
+object Parser {
+  import StatementsAndParts._
 
   def parse(s: String): Either[String, Statement] = fastparse.parse(s, statement(_)) match {
     case Parsed.Success(statement, _) => Right(statement)
