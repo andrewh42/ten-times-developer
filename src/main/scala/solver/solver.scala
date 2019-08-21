@@ -20,13 +20,8 @@ class Solver(val statements: Seq[Statement]) {
     for (value <- persons.values) {
       solver.assertCnstr(value >= minVal && value <= maxVal)
     }
-    
-    for (statement <- statements) {
-      val constraint: Tree[BoolSort] = statement match {
-        case Best(person) => persons(person) === minVal
-        case Better(better, worse) => persons(better) < persons(worse)
-      }
 
+    for (constraint <- contraintsForStatements()) {
       solver.assertCnstr(constraint)
     }
 
@@ -53,4 +48,9 @@ class Solver(val statements: Seq[Statement]) {
 
     rankedPersons
   }
+
+  protected def contraintsForStatements(): Seq[Tree[BoolSort]] = statements.map { _ match {
+    case Best(person) => persons(person) === minVal
+    case Better(better, worse) => persons(better) < persons(worse)
+  }}
 }
