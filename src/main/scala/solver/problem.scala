@@ -15,13 +15,14 @@ class ProblemBuilder(val statements: Seq[Statement]) {
 
   protected val boundsConstraints: Seq[Tree[BoolSort]] = persons.values.toSeq.map(value => value >= minVal && value <= maxVal)
 
-  def constraints(): Seq[Tree[BoolSort]] = (boundsConstraints :+ Distinct(persons.values.toSeq: _*)) ++ statements.flatMap(constraintsForStatement(_))
+  def constraints(): Seq[Tree[BoolSort]] = (boundsConstraints :+ Distinct(persons.values.toSeq: _*)) ++ statements.map(constraintsForStatement(_))
 
-  protected def constraintsForStatement(statement: Statement): Seq[Tree[BoolSort]] = statement match {
-    case Best(person) => Seq(persons(person) === minVal)
-    case Better(better, worse) => Seq(persons(better) < persons(worse))
-    case DirectlyAboveOrBelow(subject, objekt) => Seq((persons(subject) !== persons(objekt) - 1) && (persons(subject) !== persons(objekt) + 1))
-    case Worst(person) => Seq(persons(person) === maxVal)
-    case NotStatement(statement) => constraintsForStatement(statement).map(Not(_))
+  protected def constraintsForStatement(statement: Statement): Tree[BoolSort] = statement match {
+    case Best(person) => persons(person) === minVal
+    case Better(better, worse) => persons(better) < persons(worse)
+    case DirectlyAboveOrBelow(subject, objekt) => (persons(subject) !== persons(objekt) - 1) && (persons(subject) !== persons(objekt) + 1)
+    case Worst(person) => persons(person) === maxVal
+    case NotStatement(statement) => Not(constraintsForStatement(statement))
+    case OrStatement(statement1, statement2) => Or(constraintsForStatement(statement1), constraintsForStatement(statement2))
   }
 }

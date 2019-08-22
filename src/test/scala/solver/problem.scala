@@ -72,6 +72,20 @@ class ProblemBuilderSpec extends Specification {
         builder.constraints must beEqualTo(expected)
       }
 
+      "an or statement" in {
+        var builder = new ProblemBuilder(Seq(OrStatement(Best(Person("Fred")), Worst(Person("Sarah")))))
+        val fred = builder.persons(Person("Fred"))
+        val sarah = builder.persons(Person("Sarah"))
+        var expected: Seq[Tree[BoolSort]] = Seq(
+          fred >= IntConstant(0) && fred <= IntConstant(1),
+          sarah >= IntConstant(0) && sarah <= IntConstant(1),
+          Distinct(Seq(fred, sarah): _*),
+          fred === IntConstant(0) || sarah === IntConstant(1),
+        )
+
+        builder.constraints must beEqualTo(expected)
+      }
+
       "a worst statement" in {
         var builder = new ProblemBuilder(Seq(Worst(Person("Fred"))))
         val fred = builder.persons(Person("Fred"))
