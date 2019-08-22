@@ -4,35 +4,28 @@ import parser._
 import z3.scala._, dsl._
 
 class Solver(val statements: Seq[Statement]) {
-  protected val persons = PersonsBuilder.build(statements)
-    .map(person => person -> IntVar())
-    .toMap
-
-  protected val minVal = IntConstant(0)
-
-  protected val maxVal = IntConstant(persons.size - 1)
+  protected val problemBuilder = new ProblemBuilder(statements)
 
   def solve(): Option[Seq[Person]] = {
     val ctx = new Z3Context("MODEL" -> true)
     val solver = ctx.mkSolver
 
-    solver.assertCnstr(Distinct(persons.values.toSeq: _*))
-    for (value <- persons.values) {
-      solver.assertCnstr(value >= minVal && value <= maxVal)
-    }
+    val persons = problemBuilder.persons
+    val (minVal, maxVal) = (problemBuilder.minVal, problemBuilder.maxVal)
 
-    for (constraint <- contraintsForStatements()) {
+    val boundsConstraints: Seq[Tree[BoolSort]] = persons.values.toSeq.map(value => value >= minVal && value <= maxVal)
+
+    for (constraint <- (boundsConstraints :+ Distinct(persons.values.toSeq: _*)) ++ problemBuilder.constraints()) {
       solver.assertCnstr(constraint)
     }
 
     val status = solver.check
     val model = solver.getModel
-    val personValues = persons
+    val personValues = problemBuilder.persons
       .toSeq
       .map { case (p, v) => (p, model.evalAs[Int](v.ast(ctx))) }
 
-    val init: Option[Seq[(Person, Int)]] = Some(Seq())
-    val personAndRanksOpt: Option[Seq[(Person, Int)]] = personValues.foldLeft(init) { (accumOpt, curr) => curr match {
+    val personAndRanksOpt = personValues.foldLeft(Some(Seq()).asInstanceOf[Option[Seq[(Person, Int)]]]) { (accumOpt, curr) => curr match {
         case (person, Some(currVal)) => accumOpt.map(accum => accum :+ (person, currVal))
         case _ => None
       }
@@ -48,9 +41,4 @@ class Solver(val statements: Seq[Statement]) {
 
     rankedPersons
   }
-
-  protected def contraintsForStatements(): Seq[Tree[BoolSort]] = statements.map { _ match {
-    case Best(person) => persons(person) === minVal
-    case Better(better, worse) => persons(better) < persons(worse)
-  }}
 }
