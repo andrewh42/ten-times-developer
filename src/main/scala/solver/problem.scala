@@ -20,5 +20,6 @@ class ProblemBuilder(val statements: Seq[Statement]) {
   protected def constraintsForStatement(statement: Statement): Seq[Tree[BoolSort]] = statement match {
     case Best(person) => Seq(persons(person) === minVal)
     case Better(better, worse) => Seq(persons(better) < persons(worse))
+    case Worst(person) => Seq(persons(person) === maxVal)
   }
 }
