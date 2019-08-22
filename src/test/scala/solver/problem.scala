@@ -1,6 +1,6 @@
 package solver
 
-import parser._
+import parser.{ Person, Best, Better, DirectlyAboveOrBelow, Worst, Not => NotStatement, Or => OrStatement }
 import z3.scala.dsl._
 import org.specs2.mutable._
 
@@ -53,6 +53,20 @@ class ProblemBuilderSpec extends Specification {
           sarah >= IntConstant(0) && sarah <= IntConstant(1),
           Distinct(Seq(fred, sarah): _*),
           (fred !== sarah - 1) && (fred !== sarah + 1),
+        )
+
+        builder.constraints must beEqualTo(expected)
+      }
+
+      "a not statement" in {
+        var builder = new ProblemBuilder(Seq(NotStatement(DirectlyAboveOrBelow(Person("Fred"), Person("Sarah")))))
+        val fred = builder.persons(Person("Fred"))
+        val sarah = builder.persons(Person("Sarah"))
+        var expected: Seq[Tree[BoolSort]] = Seq(
+          fred >= IntConstant(0) && fred <= IntConstant(1),
+          sarah >= IntConstant(0) && sarah <= IntConstant(1),
+          Distinct(Seq(fred, sarah): _*),
+          Not((fred !== sarah - 1) && (fred !== sarah + 1)),
         )
 
         builder.constraints must beEqualTo(expected)

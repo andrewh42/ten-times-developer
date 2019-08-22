@@ -1,6 +1,6 @@
 package solver
 
-import parser._
+import parser.{ Person, Best, Better, DirectlyAboveOrBelow, Worst, Not => NotStatement, Or => OrStatement, Statement }
 import z3.scala._, dsl._
 
 /// Builds Z3 solver constraints for the provided statements.
@@ -22,5 +22,6 @@ class ProblemBuilder(val statements: Seq[Statement]) {
     case Better(better, worse) => Seq(persons(better) < persons(worse))
     case DirectlyAboveOrBelow(subject, objekt) => Seq((persons(subject) !== persons(objekt) - 1) && (persons(subject) !== persons(objekt) + 1))
     case Worst(person) => Seq(persons(person) === maxVal)
+    case NotStatement(statement) => constraintsForStatement(statement).map(Not(_))
   }
 }

@@ -9,6 +9,7 @@ case class Best(person: Person) extends Statement
 case class Better(better: Person, worse: Person) extends Statement
 case class DirectlyAboveOrBelow(subject: Person, objekt: Person) extends Statement
 case class Worst(person: Person) extends Statement
+
 case class Not(statement: Statement) extends Statement
 case class Or(statement1: Statement, statement2: Statement) extends Statement
 
