@@ -2,7 +2,7 @@ package solver
 
 import parser._
 
-object PersonsBuilder {
+private object PersonsBuilder {
   def build(statements: Seq[Statement]): Set[Person] = statements
     .flatMap(_ match {
       case Best(person) => Seq(person)

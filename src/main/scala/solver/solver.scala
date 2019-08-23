@@ -4,7 +4,7 @@ import parser.{ Person, Statement }
 import z3.scala._, dsl._
 
 class Solver(val statements: Seq[Statement]) {
-  protected val problemBuilder = new ProblemBuilder(statements)
+  private val problemBuilder = new ProblemBuilder(statements)
 
   /** @return Persons ordered from best to worst. */
   def solve(): Option[Seq[Person]] =
