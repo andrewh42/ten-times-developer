@@ -35,5 +35,9 @@ class ParserSpec extends Specification {
       parse("Jessie is not the best developer") must beEqualTo(Right(Not(Best(Person("Jessie")))))
       parse("Jessie is not the worst developer") must beEqualTo(Right(Not(Worst(Person("Jessie")))))
     }
+
+    "provide an error message when a statement is not parseable" in {
+      parse("Jessie is foo") must beEqualTo(Left("Expected (negativeStatement | positiveStatement):1:1, found \"Jessie is \""))
+    }
   }
 }

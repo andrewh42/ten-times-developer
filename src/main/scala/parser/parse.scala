@@ -67,6 +67,6 @@ object Parser {
 
   def parse(s: String): Either[String, Statement] = fastparse.parse(s, statement(_)) match {
     case Parsed.Success(statement, _) => Right(statement)
-    case Parsed.Failure(message, _, _) => Left(message)
+    case failure @ Parsed.Failure(message, _, _) => Left(failure.trace().msg)
   }
 }
