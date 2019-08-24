@@ -3,6 +3,7 @@ package solver
 import parser._
 
 private object PersonsBuilder {
+  /** Extracts the persons referred to in the provided statements. */
   def build(statements: Seq[Statement]): Set[Person] = statements
     .flatMap(_ match {
       case Best(person) => Seq(person)

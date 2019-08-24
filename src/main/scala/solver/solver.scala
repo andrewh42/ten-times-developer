@@ -20,7 +20,7 @@ class Z3Solver(statements: Seq[Statement]) extends Solver {
 
   /** @return Persons ordered from best to worst. */
   def solve(): Option[Seq[Person]] =
-    solveWithZ3(problemBuilder.constraints()).map { personAndRanks =>
+    solveWithZ3(problemBuilder.constraints).map { personAndRanks =>
       personAndRanks
         .sortWith((a, b) => a._2 < b._2)
         .map { case (person, rank) => person }

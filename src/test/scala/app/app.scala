@@ -18,11 +18,12 @@ class AppSpec extends Specification {
   "The app" should {
     "read the problem from standard input and write the solution to standard output" in {
       val mockSolverFactory = new MockSolverFactory(Seq(Best(Person("Jane")), Worst(Person("Harry"))), Seq(Person("Jane"), Person("Harry")))
-      val input = new ByteArrayInputStream("Jane is best\nHarry is worst".getBytes())
-
+      val input = new ByteArrayInputStream("Jane is best\nHarry is worst".getBytes)
       val output = new ByteArrayOutputStream
-      Console.withOut(output) {
-        new TenTimes(mockSolverFactory, new BufferedSource(input)).run()
+      Console.withIn(input) {
+        Console.withOut(output) {
+          new TenTimes(mockSolverFactory).run
+        }
       }
 
       output.toString must beEqualTo("Jane is the team's 10x developer.\nThe developers ranked from best to worst are: Jane, Harry.\n")
@@ -30,14 +31,15 @@ class AppSpec extends Specification {
 
     "display a message if there's no 10x developer" in {
       val mockSolverFactory = new MockSolverFactory(Seq(Best(Person("Jane"))), Seq(Person("Jane"), Person("Harry")))
-      val input = new ByteArrayInputStream("".getBytes())
-
+      val input = new ByteArrayInputStream("".getBytes)
       val output = new ByteArrayOutputStream
-      Console.withOut(output) {
-        new TenTimes(mockSolverFactory, new BufferedSource(input)).run()
+      Console.withIn(input) {
+        Console.withOut(output) {
+          new TenTimes(mockSolverFactory).run
+        }
       }
 
-      output.toString must beEqualTo("THere's no single 10x developer.\n")
+      output.toString must beEqualTo("There's no single 10x developer.\n")
     }
 
     "display an error message for an unparseable line and continue" in {
