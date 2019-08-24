@@ -4,7 +4,7 @@ import parser.{ Person, Best, Better, DirectlyAboveOrBelow, Worst, Not => NotSta
 import z3.scala._, dsl._
 
 /// Builds Z3 solver constraints for the provided statements.
-private class ProblemBuilder(val statements: Seq[Statement]) {
+private class Z3ProblemBuilder(val statements: Seq[Statement]) {
   val persons = PersonsBuilder.build(statements)
     .map(person => person -> IntVar())
     .toMap

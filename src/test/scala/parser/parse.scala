@@ -4,7 +4,7 @@ import Parser.parse
 import org.specs2.mutable._
 
 class ParserSpec extends Specification {
-  "The Parser" should {
+  "The parser" should {
     "parse best statements" in {
       parse("Jessie is the best developer") must beEqualTo(Right(Best(Person("Jessie"))))
       parse("Jessie is best") must beEqualTo(Right(Best(Person("Jessie"))))

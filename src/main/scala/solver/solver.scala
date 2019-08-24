@@ -3,8 +3,20 @@ package solver
 import parser.{ Person, Statement }
 import z3.scala._, dsl._
 
-class Solver(val statements: Seq[Statement]) {
-  private val problemBuilder = new ProblemBuilder(statements)
+trait SolverFactory {
+  def createSolver(statements: Seq[Statement]): Solver
+}
+
+trait Solver {
+  def solve(): Option[Seq[Person]]
+}
+
+object Z3SolverFactory extends SolverFactory {
+  def createSolver(statements: Seq[Statement]): Solver = new Z3Solver(statements)
+}
+
+class Z3Solver(statements: Seq[Statement]) extends Solver {
+  private val problemBuilder = new Z3ProblemBuilder(statements)
 
   /** @return Persons ordered from best to worst. */
   def solve(): Option[Seq[Person]] =
@@ -14,7 +26,6 @@ class Solver(val statements: Seq[Statement]) {
         .map { case (person, rank) => person }
     }
 
-  /** @return Person-rank pairs (0 = ranked first). */
   protected def solveWithZ3(constraints: Seq[Tree[BoolSort]]): Option[Seq[(Person, Int)]] = {
     val ctx = new Z3Context("MODEL" -> true)
     val solver = ctx.mkSolver

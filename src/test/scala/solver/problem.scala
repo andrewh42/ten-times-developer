@@ -4,14 +4,14 @@ import parser.{ Person, Best, Better, DirectlyAboveOrBelow, Worst, Not => NotSta
 import z3.scala.dsl._
 import org.specs2.mutable._
 
-class ProblemBuilderSpec extends Specification {
-  "The problem builder" should {
+class Z3ProblemBuilderSpec extends Specification {
+  "The Z3 problem builder" should {
     "create a single person to rank variable map" in {
-      new ProblemBuilder(Seq(Best(Person("Fred")))).persons must beEqualTo(Map(Person("Fred") -> IntVar()))
+      new Z3ProblemBuilder(Seq(Best(Person("Fred")))).persons must beEqualTo(Map(Person("Fred") -> IntVar()))
     }
 
     "create a multi-person to rank variable map" in {
-      new ProblemBuilder(Seq(Best(Person("Fred")), Worst(Person("Muriel")))).persons must beEqualTo(Map(
+      new Z3ProblemBuilder(Seq(Best(Person("Fred")), Worst(Person("Muriel")))).persons must beEqualTo(Map(
         Person("Fred") -> IntVar(),
         Person("Muriel") -> IntVar(),
       ))
@@ -19,7 +19,7 @@ class ProblemBuilderSpec extends Specification {
 
     "construct constraints for " >> {
       "a best statement" in {
-        var builder = new ProblemBuilder(Seq(Best(Person("Fred"))))
+        var builder = new Z3ProblemBuilder(Seq(Best(Person("Fred"))))
         val fred = builder.persons(Person("Fred"))
         var expected: Seq[Tree[BoolSort]] = Seq(
           fred >= IntConstant(0) && fred <= IntConstant(0),
@@ -31,7 +31,7 @@ class ProblemBuilderSpec extends Specification {
       }
 
       "a better statement" in {
-        var builder = new ProblemBuilder(Seq(Better(Person("Jane"), Person("Fred"))))
+        var builder = new Z3ProblemBuilder(Seq(Better(Person("Jane"), Person("Fred"))))
         val fred = builder.persons(Person("Fred"))
         val jane = builder.persons(Person("Jane"))
         var expected: Seq[Tree[BoolSort]] = Seq(
@@ -45,7 +45,7 @@ class ProblemBuilderSpec extends Specification {
       }
 
       "a directly above or below statement" in {
-        var builder = new ProblemBuilder(Seq(DirectlyAboveOrBelow(Person("Fred"), Person("Sarah"))))
+        var builder = new Z3ProblemBuilder(Seq(DirectlyAboveOrBelow(Person("Fred"), Person("Sarah"))))
         val fred = builder.persons(Person("Fred"))
         val sarah = builder.persons(Person("Sarah"))
         var expected: Seq[Tree[BoolSort]] = Seq(
@@ -59,7 +59,7 @@ class ProblemBuilderSpec extends Specification {
       }
 
       "a not statement" in {
-        var builder = new ProblemBuilder(Seq(NotStatement(DirectlyAboveOrBelow(Person("Fred"), Person("Sarah")))))
+        var builder = new Z3ProblemBuilder(Seq(NotStatement(DirectlyAboveOrBelow(Person("Fred"), Person("Sarah")))))
         val fred = builder.persons(Person("Fred"))
         val sarah = builder.persons(Person("Sarah"))
         var expected: Seq[Tree[BoolSort]] = Seq(
@@ -73,7 +73,7 @@ class ProblemBuilderSpec extends Specification {
       }
 
       "an or statement" in {
-        var builder = new ProblemBuilder(Seq(OrStatement(Best(Person("Fred")), Worst(Person("Sarah")))))
+        var builder = new Z3ProblemBuilder(Seq(OrStatement(Best(Person("Fred")), Worst(Person("Sarah")))))
         val fred = builder.persons(Person("Fred"))
         val sarah = builder.persons(Person("Sarah"))
         var expected: Seq[Tree[BoolSort]] = Seq(
@@ -87,7 +87,7 @@ class ProblemBuilderSpec extends Specification {
       }
 
       "a worst statement" in {
-        var builder = new ProblemBuilder(Seq(Worst(Person("Fred"))))
+        var builder = new Z3ProblemBuilder(Seq(Worst(Person("Fred"))))
         val fred = builder.persons(Person("Fred"))
         var expected: Seq[Tree[BoolSort]] = Seq(
           fred >= IntConstant(0) && fred <= IntConstant(0),
