@@ -52,7 +52,7 @@ class ProblemBuilderSpec extends Specification {
           fred >= IntConstant(0) && fred <= IntConstant(1),
           sarah >= IntConstant(0) && sarah <= IntConstant(1),
           Distinct(Seq(fred, sarah): _*),
-          (fred !== sarah - 1) && (fred !== sarah + 1),
+          (fred === sarah - 1) || (fred === sarah + 1),
         )
 
         builder.constraints must beEqualTo(expected)
@@ -66,7 +66,7 @@ class ProblemBuilderSpec extends Specification {
           fred >= IntConstant(0) && fred <= IntConstant(1),
           sarah >= IntConstant(0) && sarah <= IntConstant(1),
           Distinct(Seq(fred, sarah): _*),
-          Not((fred !== sarah - 1) && (fred !== sarah + 1)),
+          Not((fred === sarah - 1) || (fred === sarah + 1)),
         )
 
         builder.constraints must beEqualTo(expected)
