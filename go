@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh -o pipefail
 
 available () {
   return $(hash $1 2>/dev/null)
@@ -23,12 +23,48 @@ chdir_to_extras () {
   cd extras
 }
 
+run_step () {
+  local errorlog=/tmp/$$.errorlog
+  eval $* 2>$errorlog
+  if [ $? -eq 0 ]; then
+    rm $errorlog
+  else
+    echo x
+    echo
+    echo "Failed with error:" >&2
+    cat $errorlog >&2
+    rm $errorlog
+    exit 2
+  fi
+}
+
+installation_step () {
+  local title=$1
+  local runlog=/tmp/$$.log
+
+  printf "$title" >&2
+  shift
+  eval $* >$runlog 2>&1
+  local result=$?
+  if [ $result -eq 0 ]; then
+    echo ✓ >&2
+    rm $runlog
+  else
+    echo x
+    echo
+    echo "Failed with error while running the command:" >&2
+    echo "  $*" >&2
+    echo "Execution logs:" >&2
+    cat $runlog >&2
+    rm $runlog
+    exit 2
+  fi
+}
+
 install_sbt () {
   if ! available sbt; then
     if [ ! -d extras/sbt ]; then
-      printf "Installing SBT " >&2
-      ( chdir_to_extras; curl -s https://sbt-downloads.cdnedge.bluemix.net/releases/v1.2.8/sbt-1.2.8.tgz | tar xzf - )
-      echo "✓" >&2
+      installation_step "Installing SBT " "( chdir_to_extras; curl -sS https://sbt-downloads.cdnedge.bluemix.net/releases/v1.2.8/sbt-1.2.8.tgz | tar xzf - )"
     fi
 
     export PATH="$(pwd)/extras/sbt/bin:$PATH"
@@ -43,25 +79,18 @@ install_Z3 () {
       chdir_to_extras
 
       if [ ! -d ScalaZ3 ]; then
-        printf "  - cloning the ScalaZ3 git repo " >&2
-        git clone -q https://github.com/epfl-lara/ScalaZ3.git
-        echo "✓" >&2
+        installation_step "  - cloning the ScalaZ3 git repo " git clone -q https://github.com/epfl-lara/ScalaZ3.git
       fi
 
-      printf "  - building the C++ library and Scala binding " >&2
       cd ScalaZ3
-      sbt --error +package >/dev/null 2>&1
-      echo "✓" >&2
+      installation_step "  - building the C++ library and Scala binding " sbt --error +package
     )
 
     mkdir unmanaged && cp extras/ScalaZ3/target/scala-2.13/scalaz3_2.13-*.jar unmanaged
   fi
 }
 
-find_the_10x_developer () {
-  echo "Building and running the 10x developer problem solver..." >&2
-  echo "" >&2
-
+find_the_10x_developer_inner () {
   cat <<EOD | sbt --error run 2>/dev/null
 Jessie is not the best developer
 Evan is not the worst developer
@@ -70,6 +99,12 @@ Sarah is a better developer than Evan
 Matt is not directly below or above John as a developer
 John is not directly below or above Evan as a developer
 EOD
+}
+
+find_the_10x_developer () {
+  echo "Building and running the 10x developer problem solver..." >&2
+  echo >&2
+  run_step find_the_10x_developer_inner
 }
 
 ###

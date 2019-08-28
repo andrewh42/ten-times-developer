@@ -1,6 +1,11 @@
 Setup
 -----
-Ensure you have a Java JDK 11 and python installed, then run `./go` from the same directory as this README file.
+Ensure you have the following installed on macOS:
+* Java JDK 11
+* [Command Line Tools for Xcode](https://developer.apple.com/download/more/) (`xcode-select --install` may do the trick)
+* python (should already be present)
+
+Then run `./go` from the same directory as this README file.
 
 Run
 ---
@@ -18,3 +23,6 @@ Here's what the first run looks like:
     
     Sarah is the team's 10x developer.
     The developers ranked from best to worst are: Sarah, John, Jessie, Evan, Matt.
+
+In the event of a build error, the `go` script should display the logs collected during the
+failed step.
